@@ -1,0 +1,42 @@
+server.port=9001
+
+# --- Base de datos (completar con valores propios; NO versionar el archivo real) ---
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/postgres}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:postgres}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Pool Hikari
+spring.datasource.hikari.idle-timeout=60000
+spring.datasource.hikari.minimum-idle=1
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.leak-detection-threshold=5000
+spring.datasource.hikari.max-lifetime=60000
+spring.datasource.hikari.connection-timeout=2000
+spring.datasource.hikari.validation-timeout=1000
+spring.datasource.hikari.data-source-properties.prepareThreshold=0
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# --- Multipart (video de uso, capturas) ---
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=60MB
+spring.servlet.multipart.max-request-size=60MB
+
+# --- Recursos multimedia subidos por el admin ---
+app.recursos.dir=storage/recursos
+
+server.servlet.encoding.charset=utf-8
+server.servlet.encoding.enabled=true
+server.servlet.encoding.force=true
+
+spring.jackson.mapper.accept_case_insensitive_enums=true
+spring.jackson.serialization.write-dates-as-timestamps=false
+
+spring.web.resources.static-locations=classpath:/static/
+
+# --- Firebase Admin (FCM) ---
+# Coloca el JSON del service account en src/main/resources/ y NO lo versiones.
+# Ver src/main/kotlin/.../configuration/FirebaseConfig.kt

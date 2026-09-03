@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    # Sin exposición al host — el backend accede por red interna Docker
+    volumes:
+      - clean_postgres_data:/var/lib/postgresql/data
+
+  app_be:
+    build: .
+    container_name: telemedicina_be
+    restart: always
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      TZ: America/Guayaquil
+    ports:
+      - "127.0.0.1:9001:9001"   # solo accesible desde nginx del host
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+volumes:
+  clean_postgres_data:
+    external: true

@@ -1,0 +1,25 @@
+services:
+  clias-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: clias-backend:latest
+    container_name: clias-backend
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      TZ: America/Guayaquil
+    ports:
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - clean_default
+
+networks:
+  clean_default:
+    external: true
+    name: clean_default
+    
