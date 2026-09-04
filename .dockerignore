@@ -1,0 +1,23 @@
+# Build / IDE / VCS — no deben entrar al contexto de build de Docker
+target/
+.git/
+.gradle/
+.idea/
+.vscode/
+*.iml
+
+# Logs y volcados de la JVM
+logs/
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
+# Recursos subidos por el admin: viven en un volumen, no en la imagen
+storage/
+
+# Artefactos de herramientas
+graphify-out/
+
+# NOTA: src/main/resources/application.properties SÍ entra al build (lo empaqueta
+# `mvn package` dentro del JAR con la config no-BD: multipart 60MB, ddl-auto, etc.).
+# En el servidor, docker-compose.yml solo sobrescribe SPRING_DATASOURCE_* por entorno.

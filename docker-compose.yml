@@ -15,6 +15,9 @@ services:
       - "127.0.0.1:9001:9001"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      # Recursos multimedia subidos por el admin (app.recursos.dir=storage/recursos,
+      # WORKDIR del contenedor = /home/deployments). Persiste entre redeploys.
+      - ./storage:/home/deployments/storage
     networks:
       - clean_default
 
