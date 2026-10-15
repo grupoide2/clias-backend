@@ -3,6 +3,7 @@ package com.crisordonez.registro.service
 import com.crisordonez.registro.model.entities.DispositivoAppUsuarioEntity
 import com.crisordonez.registro.model.entities.NotificacionEntity
 import com.crisordonez.registro.model.enums.TipoNotificacionEnum
+import com.crisordonez.registro.model.errors.ConflictException
 import com.crisordonez.registro.model.mapper.NotificacionMapper.toEntity
 import com.crisordonez.registro.model.mapper.NotificacionMapper.toResponse
 import com.crisordonez.registro.model.mapper.NotificacionProgramadaMapper.toEntity
@@ -15,6 +16,7 @@ import com.crisordonez.registro.repository.CuentaUsuarioRepository
 import com.crisordonez.registro.repository.DispositivoAppUsuarioRepository
 import com.crisordonez.registro.repository.EncuestaSusRepository
 import com.crisordonez.registro.repository.ExamenVphRepository
+import com.crisordonez.registro.service.DispositivoRegistradoService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -32,6 +34,7 @@ class NotificacionService(
     private val dispositivoAppUsuarioRepository: DispositivoAppUsuarioRepository,
     private val examenVphRepository: ExamenVphRepository,
     private val encuestaSusRepository: EncuestaSusRepository,
+    private val dispositivoRegistradoService: DispositivoRegistradoService,
 ) : NotificacionServiceInterface {
 
     private val logger = LoggerFactory.getLogger(NotificacionService::class.java)
@@ -40,6 +43,32 @@ class NotificacionService(
     override fun crearNotificacion(request: NotificacionRequest): NotificacionResponse {
         val cuentaUsuario = cuentaUsuarioRepository.findByPublicId(request.cuentaUsuarioPublicId)
             .orElseThrow { IllegalArgumentException("CuentaUsuario no encontrado") }
+
+        // Para notificaciones de RESULTADO originadas en un dispositivo concreto,
+        // no confiamos únicamente en el cuentaUsuarioPublicId que envía el cliente:
+        // se vuelve a resolver el dueño real del dispositivo en el servidor y se
+        // rechaza la notificación si no coincide (evita notificar al paciente
+        // equivocado por un estado obsoleto en el panel de administración).
+        if (request.tipoNotificacion == TipoNotificacionEnum.RESULTADO && request.dispositivo != null) {
+            val duenoReal = try {
+                dispositivoRegistradoService.findByDispositivo(request.dispositivo).cuentaUsuarioPublicId
+            } catch (e: NoSuchElementException) {
+                throw ConflictException(
+                    "El dispositivo '${request.dispositivo}' no está registrado; " +
+                        "no se envía la notificación de resultado."
+                )
+            }
+            if (duenoReal == null || duenoReal != request.cuentaUsuarioPublicId) {
+                logger.error(
+                    "[RESULTADO] Notificación RECHAZADA: dispositivo '${request.dispositivo}' pertenece a " +
+                        "$duenoReal, pero se intentó notificar a ${request.cuentaUsuarioPublicId}"
+                )
+                throw ConflictException(
+                    "El dispositivo '${request.dispositivo}' no pertenece al paciente indicado; " +
+                        "no se envía la notificación de resultado."
+                )
+            }
+        }
 
         val notificacion = request.toEntity(cuentaUsuario)
         val guardada = notificacionRepository.save(notificacion)
