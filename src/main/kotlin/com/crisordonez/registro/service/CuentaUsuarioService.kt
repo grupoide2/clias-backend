@@ -29,6 +29,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.ZoneId
@@ -56,6 +57,7 @@ class CuentaUsuarioService(
 
     private val log = LoggerFactory.getLogger(CuentaUsuarioService::class.java)
 
+    @Transactional
     override fun crearCuentaUsuario(cuentaUsuario: CuentaUsuarioRequest): CuentaUsuarioResponse {
         log.info("Creando cuenta de usuario - Nombre: ${cuentaUsuario.nombreUsuario}")
         val usuarioDuplicado = cuentaUsuarioRepository.findByNombreUsuario(cuentaUsuario.nombreUsuario)
